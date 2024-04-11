@@ -1,0 +1,11 @@
+{
+  "name": "ChemistyTV",
+  "displayName": "Chemistry",
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "212a5d52-82dc-4c0c-b74f-1a4de8f9fdd8"
+      }
+    }
+  }
+}
