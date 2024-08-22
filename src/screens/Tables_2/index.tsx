@@ -1,5 +1,4 @@
-/* eslint-disable prettier/prettier */
-import { View, Text, TouchableWithoutFeedback, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableWithoutFeedback, ScrollView, TouchableOpacity } from 'react-native';
 import React, { useRef, useState } from 'react';
 import Header from '../../components/app/Header';
 import GradientBackground from '../../components/app/GradientBackground';
@@ -25,6 +24,12 @@ const Index = () => {
   const [focused, setFocused] = useState('none');
   const { styles, colors } = useStyles();
   const dictionary = useLocales();
+
+  const [selected, setSelected] = useState({
+    row: -1,
+    column: -1,
+  });
+
 const settings = useSelector(selectSettings);
 
   const horizontalScroll1 = useRef();
@@ -62,13 +67,38 @@ const settings = useSelector(selectSettings);
                   // @ts-ignore
                   ref={horizontalScroll1}>
                   <View style={styles.row}>
-                    <Text style={styles.header} />
-                    {SOLUBILITIES.map(item => (
-                      <Text style={styles.header} key={item}>
-                        {dictionary.solubilities[item]}
-                        {'\n'}
-                        {SOLUBILITIES_CHEMICAL[item]}
-                      </Text>
+                    <TouchableOpacity
+                      style={styles.header}
+                      onFocus={() => {
+                        setFocused(`heading-1-1`);
+                      }}></TouchableOpacity>
+                    {SOLUBILITIES.map((item, index) => (
+                      <TouchableOpacity
+                        onFocus={() => {
+                          setFocused(`heading-${item}`);
+                        }}
+                        onPress={() => {
+                          setSelected({
+                            ...selected,
+                            column: index,
+                          });
+                        }}
+                        key={item}>
+                        <Text
+                          style={{
+                            ...styles.header,
+                            backgroundColor:
+                              selected.column === index
+                                ? colors.BLACK
+                                : focused === `heading-${item}`
+                                ? colors.GRAY
+                                : colors.PRIMARY,
+                          }}>
+                          {dictionary.solubilities[item]}
+                          {'\n'}
+                          {SOLUBILITIES_CHEMICAL[item]}
+                        </Text>
+                      </TouchableOpacity>
                     ))}
                   </View>
                 </ScrollView>
@@ -82,18 +112,36 @@ const settings = useSelector(selectSettings);
                     <View>
                       {ELEMENT_SOLUBILITY.map((element, index) => {
                         return (
-                          <View
+                          <TouchableOpacity
                             key={'view1' + index}
+                            onFocus={() => {
+                              setFocused(`element-${index}`);
+                            }}
+                            onPress={() => {
+                              setSelected({
+                                ...selected,
+                                row: index,
+                              });
+                            }}
                             style={{
                               ...styles.row,
                               backgroundColor: index % 2 == 0 ? colors.TABLE_1 : colors.TABLE_2,
                             }}>
-                            <Text style={{ ...styles.value, backgroundColor: colors.TABLE_2 }}>
+                            <Text
+                              style={{
+                                ...styles.value,
+                                backgroundColor:
+                                  selected.row === index
+                                    ? colors.BLACK
+                                    : focused === `element-${index}`
+                                    ? colors.GRAY
+                                    : colors.TABLE_2,
+                              }}>
                               {dictionary.elementSolubilities[element]}
                               {'\n'}
                               {ELEMENT_SOLUBILITY_CHEMICAL[element]}
                             </Text>
-                          </View>
+                          </TouchableOpacity>
                         );
                       })}
                     </View>
@@ -125,11 +173,15 @@ const settings = useSelector(selectSettings);
                                   style={{
                                     ...styles.value,
                                     color: getColor(el.Ammonium),
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 0 ? colors.WHITE : 'transparent',
                                   }}>
                                   {dictionary.solubility[el.Ammonium]}
                                 </Text>
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 1 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Lithium),
                                   }}>
@@ -137,6 +189,8 @@ const settings = useSelector(selectSettings);
                                 </Text>
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 2 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Sodium),
                                   }}>
@@ -144,6 +198,8 @@ const settings = useSelector(selectSettings);
                                 </Text>
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 3 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Potassium),
                                   }}>
@@ -151,6 +207,8 @@ const settings = useSelector(selectSettings);
                                 </Text>
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 4 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Magnesium),
                                   }}>
@@ -159,6 +217,8 @@ const settings = useSelector(selectSettings);
 
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 5 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Calcium),
                                   }}>
@@ -167,6 +227,8 @@ const settings = useSelector(selectSettings);
 
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 6 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Barium),
                                   }}>
@@ -175,6 +237,8 @@ const settings = useSelector(selectSettings);
 
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 7 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.IronII),
                                   }}>
@@ -183,6 +247,8 @@ const settings = useSelector(selectSettings);
 
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 8 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.IronIII),
                                   }}>
@@ -191,6 +257,8 @@ const settings = useSelector(selectSettings);
 
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 9 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.CopperII),
                                   }}>
@@ -199,6 +267,8 @@ const settings = useSelector(selectSettings);
 
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 10 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Silver),
                                   }}>
@@ -207,6 +277,8 @@ const settings = useSelector(selectSettings);
 
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 11 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Zinc),
                                   }}>
@@ -214,6 +286,8 @@ const settings = useSelector(selectSettings);
                                 </Text>
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 12 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.LeadII),
                                   }}>
@@ -221,6 +295,8 @@ const settings = useSelector(selectSettings);
                                 </Text>
                                 <Text
                                   style={{
+                                    backgroundColor:
+                                      selected.row === index && selected.column === 13 ? colors.WHITE : 'transparent',
                                     ...styles.value,
                                     color: getColor(el.Aluminum),
                                   }}>
