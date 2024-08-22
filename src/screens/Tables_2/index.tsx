@@ -1,4 +1,5 @@
-import { View, Text, Image, TouchableWithoutFeedback, ScrollView } from 'react-native';
+/* eslint-disable prettier/prettier */
+import { View, Text, TouchableWithoutFeedback, ScrollView } from 'react-native';
 import React, { useRef, useState } from 'react';
 import Header from '../../components/app/Header';
 import GradientBackground from '../../components/app/GradientBackground';
@@ -12,6 +13,9 @@ import {
   SOLUBILITY_DATA,
 } from '../../lib/constants';
 import useLocales from '../../lib/locales/useLocales';
+import AudioHandler, { StartPlayingAudio, StopPlayingAudio } from '../../utils/AudioHandler';
+import { useSelector } from 'react-redux';
+import { selectSettings } from '../../store/reducer/settings';
 
 const getColor = (t: keyof typeof SOLUBILITY_DATA | undefined) => {
   return t ? SOLUBILITY_DATA[t].color : undefined;
@@ -21,9 +25,12 @@ const Index = () => {
   const [focused, setFocused] = useState('none');
   const { styles, colors } = useStyles();
   const dictionary = useLocales();
+const settings = useSelector(selectSettings);
 
   const horizontalScroll1 = useRef();
   const horizontalScroll2 = useRef();
+
+  AudioHandler(202, settings);
 
   return (
     <>
@@ -31,7 +38,14 @@ const Index = () => {
       <GradientBackground>
         <View style={styles.container}>
           <View style={styles.titleView}>
-            <Text style={styles.title}>{dictionary.titles.solubilityChart}</Text>
+            <Text
+              style={styles.title}
+              onPress={() => {
+              StopPlayingAudio();
+              StartPlayingAudio(202, settings);
+            }}>
+              {dictionary.titles.solubilityChart}
+              </Text>
           </View>
           <TouchableWithoutFeedback onFocus={() => setFocused('main-table')}>
             <View
@@ -48,7 +62,7 @@ const Index = () => {
                   // @ts-ignore
                   ref={horizontalScroll1}>
                   <View style={styles.row}>
-                    <Text style={styles.header}></Text>
+                    <Text style={styles.header} />
                     {SOLUBILITIES.map(item => (
                       <Text style={styles.header} key={item}>
                         {dictionary.solubilities[item]}
