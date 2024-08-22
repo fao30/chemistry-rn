@@ -12,6 +12,9 @@ import {
   SOLUBILITY_DATA,
 } from '../../lib/constants';
 import useLocales from '../../lib/locales/useLocales';
+import AudioHandler, { StartPlayingAudio, StopPlayingAudio } from '../../utils/AudioHandler';
+import { useSelector } from 'react-redux';
+import { selectSettings } from '../../store/reducer/settings';
 
 const getColor = (t: keyof typeof SOLUBILITY_DATA | undefined) => {
   return t ? SOLUBILITY_DATA[t].color : undefined;
@@ -21,13 +24,18 @@ const Index = () => {
   const [focused, setFocused] = useState('none');
   const { styles, colors } = useStyles();
   const dictionary = useLocales();
+
   const [selected, setSelected] = useState({
     row: -1,
     column: -1,
   });
 
+const settings = useSelector(selectSettings);
+
   const horizontalScroll1 = useRef();
   const horizontalScroll2 = useRef();
+
+  AudioHandler(202, settings);
 
   return (
     <>
@@ -35,7 +43,14 @@ const Index = () => {
       <GradientBackground>
         <View style={styles.container}>
           <View style={styles.titleView}>
-            <Text style={styles.title}>{dictionary.titles.solubilityChart}</Text>
+            <Text
+              style={styles.title}
+              onPress={() => {
+              StopPlayingAudio();
+              StartPlayingAudio(202, settings);
+            }}>
+              {dictionary.titles.solubilityChart}
+              </Text>
           </View>
           <TouchableWithoutFeedback onFocus={() => setFocused('main-table')}>
             <View
