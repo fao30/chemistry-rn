@@ -12,35 +12,71 @@ const getElementColor = (category: string | undefined) => {
   return category ? CATEGORIES[category]?.color : '#B1C0C9';
 };
 
-const HighLightedElement = ({ element, dictionary }: { element: any; dictionary: Dictionary }) => {
+const HighLightedElement = ({
+  element,
+  dictionary,
+  inline = false,
+}: {
+  element: any;
+  dictionary: Dictionary;
+  // the short-form table has no empty region to overlay, so it places this
+  // card in normal flow instead of absolutely inside the table
+  inline?: boolean;
+}) => {
   const { styles, colors, sizes, globalStyles } = useStyles();
   const top = sizes.PADDING + sizes.FONTSIZE_3x / 2;
   const elementColor = getElementColor(element.category);
 
   return (
-    <View style={{ ...styles.element, borderColor: elementColor }}>
-      <TextAndLine
-        text={dictionary.titles.atomicNumber + ' '}
-        top={top}
-        left={-sizes.ELEMENT_SIZE}
-        width={sizes.ELEMENT_SIZE}
-      />
-      <TextAndLine text={dictionary.titles.symbol + '  '} left={-sizes.ELEMENT_SIZE} width={sizes.ELEMENT_SIZE * 1.5} />
+    <View
+      style={{
+        ...styles.element,
+        ...(inline
+          ? {
+              position: 'relative',
+              top: undefined,
+              left: undefined,
+              // the card's labels are white: over the dark gradient of the
+              // international table that reads fine, but inline it sits on the
+              // white grid, so it needs its own dark surface
+              backgroundColor: colors.TABLE_2,
+            }
+          : null),
+        borderColor: elementColor,
+      }}>
+      {/* The leader labels need about five cells of width on either side.
+          Inline (short form) the card sits in a three-column gap, so they are
+          dropped rather than spilling over the table and off screen. */}
+      {!inline && (
+        <>
+          <TextAndLine
+            text={dictionary.titles.atomicNumber + ' '}
+            top={top}
+            left={-sizes.ELEMENT_SIZE}
+            width={sizes.ELEMENT_SIZE}
+          />
+          <TextAndLine
+            text={dictionary.titles.symbol + '  '}
+            left={-sizes.ELEMENT_SIZE}
+            width={sizes.ELEMENT_SIZE * 1.5}
+          />
 
-      <TextAndLine
-        text={dictionary.titles.title + '  '}
-        left={-sizes.ELEMENT_SIZE}
-        bottom={top}
-        width={sizes.ELEMENT_SIZE * 1.2}
-      />
+          <TextAndLine
+            text={dictionary.titles.title + '  '}
+            left={-sizes.ELEMENT_SIZE}
+            bottom={top}
+            width={sizes.ELEMENT_SIZE * 1.2}
+          />
 
-      <TextAndLine
-        reversed
-        text={dictionary.titles.atomicWeight}
-        right={-sizes.ELEMENT_SIZE}
-        top={top}
-        width={sizes.ELEMENT_SIZE}
-      />
+          <TextAndLine
+            reversed
+            text={dictionary.titles.atomicWeight}
+            right={-sizes.ELEMENT_SIZE}
+            top={top}
+            width={sizes.ELEMENT_SIZE}
+          />
+        </>
+      )}
 
       {/* Details */}
       <Text style={styles.atomicNumber}>{element.static.generalProperties.atomicNumber}</Text>

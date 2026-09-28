@@ -14,6 +14,11 @@ const useStyles = () => {
       container: {
         flex: 1,
       },
+      switchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: sizes.MAIN_PADDING,
+      },
       table: {
         marginTop: sizes.ELEMENT_SIZE / 2,
         paddingHorizontal: sizes.ELEMENT_SIZE,

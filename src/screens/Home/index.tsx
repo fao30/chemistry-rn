@@ -5,23 +5,28 @@ import { ELEMENT_DATA1, getElementBySymbol, isElement } from '../../lib/function
 import { CATEGORIES_OPTIONS, ELEMENT_DATA2, ELEMENT_DATA3 } from '../../lib/constants';
 import useLocales from '../../lib/locales/useLocales';
 import GradientBackground from '../../components/app/GradientBackground';
-import { useSelector } from 'react-redux';
-import { selectSettings } from '../../store/reducer/settings';
-import { Element } from '../../types';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectSettings, selectTableView, setTableView } from '../../store/reducer/settings';
+import { Element, TableView } from '../../types';
 import Header from '../../components/app/Header';
 import ElementComponent from '../../components/app/ElementComponent';
 import HighLightedElement from '../../components/app/HighLightedElement';
 import { useNavigation } from '@react-navigation/native';
 import screens from '../../constants/screens';
 import images from '../../assets/images';
+import TableViewSwitch from '../../components/app/TableViewSwitch';
+import ShortFormTable from '../../components/app/ShortFormTable';
 
 const Index = () => {
   const { styles, sizes } = useStyles();
   const [focused, setFocused] = useState<string>('none');
   const isElementFocused = useMemo(() => isElement(focused), [focused]);
   const settings = useSelector(selectSettings);
+  const tableView = useSelector(selectTableView);
+  const isShortForm = tableView === 'short';
   const dictionary = useLocales();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const elementPressed = useCallback(
     (element: Element) => {
       // @ts-ignore
@@ -44,91 +49,119 @@ const Index = () => {
                 },
               ],
             }}>
-            <View style={styles.table}>
-              {isElementFocused && <HighLightedElement dictionary={dictionary} element={getElementBySymbol(focused)} />}
-              <Image
-                source={images.LOGO}
-                style={{
-                  width: sizes.ELEMENT_SIZE * 1.5,
-                  height: sizes.ELEMENT_SIZE * 1.5,
-                  position: 'absolute',
-                  right: sizes.ELEMENT_SIZE,
-                  borderRadius: sizes.BORDER_RADIUS,
-                  bottom: 0,
-                }}
+            <View style={styles.switchRow}>
+              <TableViewSwitch
+                focused={focused}
+                setFocused={setFocused}
+                selected={tableView}
+                setSelected={(value: TableView) => dispatch(setTableView(value))}
+                settings={settings}
+                dictionary={dictionary}
               />
-              {ELEMENT_DATA1?.map((period, pIndex) => (
+            </View>
+
+            {isShortForm ? (
+              <ShortFormTable
+                focused={focused}
+                setFocused={setFocused}
+                isElementFocused={isElementFocused}
+                elementPressed={elementPressed}
+                settings={settings}
+                dictionary={dictionary}
+                highlightedElement={isElementFocused ? getElementBySymbol(focused) : undefined}
+              />
+            ) : (
+              <View style={styles.table}>
+                {isElementFocused && (
+                  <HighLightedElement dictionary={dictionary} element={getElementBySymbol(focused)} />
+                )}
+                <Image
+                  source={images.LOGO}
+                  style={{
+                    width: sizes.ELEMENT_SIZE * 1.5,
+                    height: sizes.ELEMENT_SIZE * 1.5,
+                    position: 'absolute',
+                    right: sizes.ELEMENT_SIZE,
+                    borderRadius: sizes.BORDER_RADIUS,
+                    bottom: 0,
+                  }}
+                />
+                {ELEMENT_DATA1?.map((period, pIndex) => (
+                  <View
+                    key={`period : ${pIndex}`}
+                    style={{
+                      ...styles.period,
+                      justifyContent: 'space-between',
+                    }}>
+                    {period.map((el, gIndex) => (
+                      <ElementComponent
+                        dictionary={dictionary}
+                        // @ts-ignore
+                        el={el}
+                        elementPressed={elementPressed}
+                        focused={focused}
+                        isElementFocused={isElementFocused}
+                        settings={settings}
+                        setFocused={setFocused}
+                        key={`period : ${pIndex}, group : ${gIndex}, element : ${el?.symbol}`}
+                      />
+                    ))}
+                  </View>
+                ))}
                 <View
-                  key={`period : ${pIndex}`}
                   style={{
                     ...styles.period,
-                    justifyContent: 'space-between',
                   }}>
-                  {period.map((el, gIndex) => (
+                  {ELEMENT_DATA2.map((el, index) => (
                     <ElementComponent
+                      style={{
+                        marginRight: sizes.PERIOD_GAP,
+                      }}
                       dictionary={dictionary}
-                      // @ts-ignore
                       el={el}
                       elementPressed={elementPressed}
                       focused={focused}
                       isElementFocused={isElementFocused}
                       settings={settings}
                       setFocused={setFocused}
-                      key={`period : ${pIndex}, group : ${gIndex}, element : ${el?.symbol}`}
+                      key={`data 2 : ${index}`}
                     />
                   ))}
                 </View>
-              ))}
-              <View
-                style={{
-                  ...styles.period,
-                }}>
-                {ELEMENT_DATA2.map((el, index) => (
-                  <ElementComponent
-                    style={{
-                      marginRight: sizes.PERIOD_GAP,
-                    }}
-                    dictionary={dictionary}
-                    el={el}
-                    elementPressed={elementPressed}
-                    focused={focused}
-                    isElementFocused={isElementFocused}
-                    settings={settings}
-                    setFocused={setFocused}
-                    key={`data 2 : ${index}`}
-                  />
-                ))}
-              </View>
-              <View
-                style={{
-                  ...styles.period,
-                }}>
-                {ELEMENT_DATA3.map((el, index) => (
-                  <ElementComponent
-                    style={{
-                      marginRight: sizes.PERIOD_GAP,
-                    }}
-                    dictionary={dictionary}
-                    el={el}
-                    elementPressed={elementPressed}
-                    focused={focused}
-                    isElementFocused={isElementFocused}
-                    settings={settings}
-                    setFocused={setFocused}
-                    key={`data 2 : ${index}`}
-                  />
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.types}>
-              {CATEGORIES_OPTIONS.map((category, index) => (
-                <View key={index} style={styles.typesPart}>
-                  <View style={{ ...styles.color, backgroundColor: category.color }} />
-                  <Text style={styles.typeText}>{dictionary.elementCategories[category.value]}</Text>
+                <View
+                  style={{
+                    ...styles.period,
+                  }}>
+                  {ELEMENT_DATA3.map((el, index) => (
+                    <ElementComponent
+                      style={{
+                        marginRight: sizes.PERIOD_GAP,
+                      }}
+                      dictionary={dictionary}
+                      el={el}
+                      elementPressed={elementPressed}
+                      focused={focused}
+                      isElementFocused={isElementFocused}
+                      settings={settings}
+                      setFocused={setFocused}
+                      key={`data 2 : ${index}`}
+                    />
+                  ))}
                 </View>
-              ))}
-            </View>
+              </View>
+            )}
+
+            {/* the short form carries its own s/p/d/f block legend */}
+            {!isShortForm && (
+              <View style={styles.types}>
+                {CATEGORIES_OPTIONS.map((category, index) => (
+                  <View key={index} style={styles.typesPart}>
+                    <View style={{ ...styles.color, backgroundColor: category.color }} />
+                    <Text style={styles.typeText}>{dictionary.elementCategories[category.value]}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </ScrollView>
       </GradientBackground>

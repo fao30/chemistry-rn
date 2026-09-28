@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { DEFAULT_PRIMARY_COLOR } from '../../constants/color';
 import { defaultLang } from '../../lib/constants';
+import type { TableView } from '../../types';
 
 // init states
 const initState = {
@@ -9,6 +10,7 @@ const initState = {
     showElementName: true,
     showElementAtomicWeight: true,
     tabWidth: 1,
+    tableView: 'international' as TableView,
     playSound: false,
     primaryColor: DEFAULT_PRIMARY_COLOR,
   },
@@ -33,6 +35,9 @@ const settings = createSlice({
     setTabWidth(state, action) {
       state.settings.tabWidth = action.payload;
     },
+    setTableView(state, action) {
+      state.settings.tableView = action.payload;
+    },
     setPlaySound(state, action) {
       state.settings.playSound = action.payload;
     },
@@ -42,7 +47,21 @@ const settings = createSlice({
   },
 });
 
-export const { setLangID, setShowElementName, setShowElementAtomicWeight, setPlaySound, setPrimaryColor, setTabWidth } =
-  settings.actions;
+export const {
+  setLangID,
+  setShowElementName,
+  setShowElementAtomicWeight,
+  setPlaySound,
+  setPrimaryColor,
+  setTabWidth,
+  setTableView,
+} = settings.actions;
 export default settings.reducer;
 export const selectSettings = (state: any): Settings => state.settings.settings;
+
+/**
+ * redux-persist merges one level deep, so state persisted before `tableView`
+ * existed rehydrates without it. Fall back to the international view.
+ */
+export const selectTableView = (state: any): TableView =>
+  selectSettings(state).tableView ?? 'international';

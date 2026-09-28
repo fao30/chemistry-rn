@@ -32,6 +32,32 @@ export type Color =
   | 'GOLD';
 export type ColorSetting = keyof typeof COLOR_SETTING;
 export type TableWidth = '80' | '85' | '90' | '95' | '100';
+
+// short-period ("Russian") table view
+export type TableView = 'international' | 'short';
+export type ShortSubgroup = 'A' | 'B';
+export type ElementBlock = 's' | 'p' | 'd' | 'f';
+export type ShortSeriesId = 'lanthanides' | 'actinides';
+export type ShortColumnSlot = 'main' | 'triad0' | 'triad1' | 'triad2' | 'noble';
+
+export type ShortColumn = {
+  group: number; // 1..8
+  roman: string; // 'I'..'VIII'
+  slot: ShortColumnSlot;
+};
+
+export type ShortCell =
+  | { kind: 'element'; element: Element; subgroup: ShortSubgroup }
+  | { kind: 'series'; id: ShortSeriesId; label: string }
+  | { kind: 'empty' };
+
+export type ShortRow = {
+  rowNo: number; // 1..11
+  period: number; // 1..7
+  isFirstRowOfPeriod: boolean;
+  periodRowSpan: 1 | 2;
+  cells: ShortCell[]; // always 11
+};
 export type Phase = 'GAS' | 'SOLID' | 'LIQUID';
 
 export type CrystalStructure =
@@ -98,6 +124,19 @@ export type Dictionary = {
     group: string;
     period: string;
     block: string;
+    tableViewInternational: string;
+    tableViewShort: string;
+    periods: string;
+    rows: string;
+    groupsOfElements: string;
+    higherOxides: string;
+    volatileHydrogenCompounds: string;
+    subgroupMain: string;
+    subgroupSecondary: string;
+    sElements: string;
+    pElements: string;
+    dElements: string;
+    fElements: string;
     history: string;
     protons: string;
     electrons: string;
