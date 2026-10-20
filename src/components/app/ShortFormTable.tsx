@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, TouchableWithoutFeedback, Animated } from 'react-native';
 import React from 'react';
 import { useColors } from '../../constants/color';
 import { useSizes } from '../../constants/size';
@@ -15,8 +15,9 @@ import {
   VOLATILE_HYDRIDES,
 } from '../../lib/shortForm';
 import { Dictionary, Element, ShortCell, ShortSeriesId } from '../../types';
-import ShortFormCell, { tint } from './ShortFormCell';
+import ShortFormCell, { FocusRing, tint } from './ShortFormCell';
 import HighLightedElement from './HighLightedElement';
+import { findCell, overlaps, stickyCardRanges } from '../../lib/stickyCard';
 
 /**
  * Short-period ("Russian") table, laid out after the printed school charts:
@@ -33,6 +34,11 @@ const GRID_UNITS = 11; // 7 main groups + 3 triads + the noble gases
 const TOTAL_UNITS = GRID_UNITS + 2 * LABEL_COL_UNITS;
 const CELL_ASPECT = 0.62; // short-form cells are wide and flat, as in print
 const SERIES_LENGTH = 15; // 57-71 and 89-103
+const TRIAD_COLUMN = 7; // first of the three group VIII triad columns, where the element card sits
+
+const GRID_SYMBOLS = SHORT_TABLE.map(row =>
+  row.cells.map(cell => (cell.kind === 'element' ? cell.element.symbol : undefined)),
+);
 
 const useShortFormSizes = () => {
   const sizes = useSizes();
@@ -69,6 +75,7 @@ const ShortFormTable = ({
   settings,
   dictionary,
   highlightedElement,
+  stickyOffset,
 }: {
   focused: string;
   setFocused: (value: string) => void;
@@ -77,8 +84,24 @@ const ShortFormTable = ({
   settings: any;
   dictionary: Dictionary;
   highlightedElement?: Element;
+  // page scroll offset, so the card stays on screen while the lower rows are focused
+  stickyOffset: Animated.AnimatedInterpolation<number>;
 }) => {
   const { styles, colors, dims } = useStyles();
+
+  // the card covers the triad columns; when the focused cell is one of them,
+  // it waits below that row instead of hiding it
+  const focusedCell = findCell(GRID_SYMBOLS, focused);
+  const cardOffset =
+    focusedCell && overlaps(focusedCell.col, focusedCell.col + 1, TRIAD_COLUMN, TRIAD_COLUMN + 3)
+      ? stickyOffset.interpolate(
+          stickyCardRanges(
+            focusedCell.row * dims.cellHeight,
+            (focusedCell.row + 1) * dims.cellHeight,
+            dims.cellHeight * 3,
+          ),
+        )
+      : stickyOffset;
 
   const cellProps = {
     dictionary,
@@ -115,12 +138,11 @@ const ShortFormTable = ({
                 ...styles.seriesCell,
                 width: dims.cellWidth,
                 height: dims.cellHeight,
-                borderWidth: focused === cell.id ? 3 : StyleSheet.hairlineWidth,
-                borderColor: focused === cell.id ? colors.TEXT : colors.GRAY_2,
                 backgroundColor:
                   isElementFocused && focused !== cell.id ? tint(seriesColor(cell.id), 0.45) : seriesColor(cell.id),
               }}>
               <Text style={{ ...styles.seriesLabel, color: colors.TEXT }}>{cell.label}</Text>
+              {focused === cell.id && <FocusRing width={dims.cellWidth} />}
             </View>
           </TouchableWithoutFeedback>
         )}
@@ -238,9 +260,9 @@ const ShortFormTable = ({
             zoomed element card lives in that block, as it does in the
             international table's empty upper region. */}
         {highlightedElement && (
-          <View style={styles.highlight} pointerEvents="none">
+          <Animated.View style={{ ...styles.highlight, transform: [{ translateY: cardOffset }] }} pointerEvents="none">
             <HighLightedElement dictionary={dictionary} element={highlightedElement} inline />
-          </View>
+          </Animated.View>
         )}
       </View>
 
@@ -455,13 +477,15 @@ const useStyles = () => {
     },
     highlight: {
       position: 'absolute',
-      // sit inside the three triad columns, clear of the noble gas column
-      right: dims.cellWidth * 1.25,
+      // exactly over the three triad columns, clear of the noble gas column
+      left: dims.labelColWidth * 2 + dims.cellWidth * TRIAD_COLUMN,
       top: 0,
       height: dims.cellHeight * 3,
       width: dims.cellWidth * 3,
       alignItems: 'center',
       justifyContent: 'center',
+      zIndex: 10,
+      elevation: 10,
     },
   });
 

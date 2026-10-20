@@ -31,6 +31,34 @@ export const tint = (hex: string, amount: number) => {
   return `rgb(${mix((n >> 16) & 255)}, ${mix((n >> 8) & 255)}, ${mix(n & 255)})`;
 };
 
+const RING_INNER = 2; // white inner line
+
+/** Outer black border of the focus frame; scales with the cell. */
+const ringOuter = (width: number) => Math.max(4, Math.round(width * 0.05));
+
+/** Total thickness of the focus frame, to pad the cell's contents clear of it. */
+export const focusRingThickness = (width: number) => ringOuter(width) + RING_INNER;
+
+/**
+ * Focus frame for a TV viewed from across the room: a heavy black border with a
+ * white inner line, so it reads on every block colour. Drawn over the cell, so
+ * the cell pads its contents by focusRingThickness while focused.
+ */
+export const FocusRing = ({ width }: { width: number }) => {
+  const colors = useColors();
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        ...StyleSheet.absoluteFillObject,
+        borderWidth: ringOuter(width),
+        borderColor: colors.TEXT,
+      }}>
+      <View style={{ flex: 1, borderWidth: RING_INNER, borderColor: colors.WHITE }} />
+    </View>
+  );
+};
+
 const ShortFormCell = ({
   el,
   focused,
@@ -67,8 +95,8 @@ const ShortFormCell = ({
   const isFocused = focused === el?.symbol;
   const isSecondary = subgroup === 'B';
 
-  // the fill now encodes the block, so focus is shown with a heavy border
-  // rather than by recolouring the cell
+  // the fill now encodes the block, so focus is shown with a heavy frame
+  // (FocusRing) rather than by recolouring the cell
   const backgroundColor = isElementFocused && !isFocused ? tint(elementColor, 0.45) : elementColor;
 
   // dark text on the block fills, as in the printed charts
@@ -82,8 +110,10 @@ const ShortFormCell = ({
           width,
           height,
           backgroundColor,
-          borderWidth: isFocused ? 3 : StyleSheet.hairlineWidth,
-          borderColor: isFocused ? colors.TEXT : colors.GRAY_2,
+          // paddingHorizontal/Vertical, as the base style's would override a plain padding
+          ...(isFocused
+            ? { paddingHorizontal: focusRingThickness(width), paddingVertical: focusRingThickness(width) }
+            : null),
         }}>
         <View style={{ ...styles.top, flexDirection: isSecondary ? 'row-reverse' : 'row' }}>
           <Text
@@ -123,6 +153,8 @@ const ShortFormCell = ({
             {dictionary.elements[el?.symbol]?.name}
           </Text>
         )}
+
+        {isFocused && <FocusRing width={width} />}
       </View>
     </TouchableWithoutFeedback>
   );

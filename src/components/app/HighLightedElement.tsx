@@ -1,11 +1,15 @@
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
 import { useColors } from '../../constants/color';
-import { useSizes } from '../../constants/size';
+import { Size, useSizes } from '../../constants/size';
 import { getGlobalStyles } from '../../constants/globalStyles';
 import { Settings } from '../../store/reducer/settings';
 import { Dictionary, Element } from '../../types';
 import { CATEGORIES } from '../../lib/constants';
+
+// card geometry, shared with the tables so they can keep it off the focused cell
+export const cardSize = (sizes: Size) => sizes.ELEMENT_SIZE * 3 - 10;
+export const cardLeft = (sizes: Size) => sizes.ELEMENT_SIZE * 6;
 
 const getElementColor = (category: string | undefined) => {
   // @ts-ignore
@@ -140,6 +144,9 @@ const TextAndLine = ({
             fontSize: sizes.FONTSIZE_3x * 0.8,
             color: colors.WHITE,
             position: 'absolute',
+            // backed for the same reason as the card: it can sit over cells
+            backgroundColor: colors.BACKGROUND_GRADIENT[0],
+            paddingHorizontal: 4,
           },
           reversed
             ? { right: -(text.length * sizes.FONTSIZE_3x) / 2 }
@@ -165,14 +172,16 @@ const useStyles = () => {
 
   const styles = StyleSheet.create({
     element: {
-      height: sizes.ELEMENT_SIZE * 3 - 10,
-      width: sizes.ELEMENT_SIZE * 3 - 10,
+      height: cardSize(sizes),
+      width: cardSize(sizes),
       borderWidth: 3,
       alignItems: 'center',
       justifyContent: 'center',
       position: 'absolute',
       top: 0,
-      left: sizes.ELEMENT_SIZE * 6,
+      left: cardLeft(sizes),
+      // solid, because the card stays on screen while the table scrolls under it
+      backgroundColor: colors.BACKGROUND_GRADIENT[0],
     },
     atomicNumber: {
       ...globalStyles.TEXT_STYLE_BOLD,

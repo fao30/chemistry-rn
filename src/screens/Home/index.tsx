@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Image, ScrollView, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Image, Text, View } from 'react-native';
 import useStyles from './style';
 import { ELEMENT_DATA1, getElementBySymbol, isElement } from '../../lib/functions';
 import { CATEGORIES_OPTIONS, ELEMENT_DATA2, ELEMENT_DATA3 } from '../../lib/constants';
@@ -10,12 +10,18 @@ import { selectSettings, selectTableView, setTableView } from '../../store/reduc
 import { Element, TableView } from '../../types';
 import Header from '../../components/app/Header';
 import ElementComponent from '../../components/app/ElementComponent';
-import HighLightedElement from '../../components/app/HighLightedElement';
+import HighLightedElement, { cardLeft, cardSize } from '../../components/app/HighLightedElement';
 import { useNavigation } from '@react-navigation/native';
 import screens from '../../constants/screens';
 import images from '../../assets/images';
 import TableViewSwitch from '../../components/app/TableViewSwitch';
 import ShortFormTable from '../../components/app/ShortFormTable';
+import { findCell, overlaps, stickyCardRanges } from '../../lib/stickyCard';
+
+// the international table's cells as rendered: seven periods, then the two series rows
+const INTERNATIONAL_GRID = [...ELEMENT_DATA1, ELEMENT_DATA2, ELEMENT_DATA3].map(row =>
+  (row as ({ symbol?: string } | null)[]).map(el => el?.symbol),
+);
 
 const Index = () => {
   const { styles, sizes } = useStyles();
@@ -35,11 +41,42 @@ const Index = () => {
     [navigation],
   );
 
+  // The zoomed element card lives inside the scrolled table. Shifting it down by
+  // the scroll offset keeps it on screen when focus moves to the lower rows.
+  // The table is scaled by tabWidth, so the offset is in unscaled units.
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const stickyOffset = useMemo(() => Animated.divide(scrollY, settings.tabWidth || 1), [scrollY, settings.tabWidth]);
+
+  // The scroll is tracked on the native side, so the JS copy of scrollY would
+  // stay at 0, and every re-render would briefly put the card back at the top
+  // of the table (off screen once scrolled). A listener makes native report the
+  // value back, keeping what React renders in step with what native shows.
+  useEffect(() => {
+    const id = scrollY.addListener(() => {});
+    return () => scrollY.removeListener(id);
+  }, [scrollY]);
+
+  // ...unless that would put it over the focused cell; then it waits below that row
+  const cardOffset = useMemo(() => {
+    const cell = findCell(INTERNATIONAL_GRID, focused);
+    if (!cell) return stickyOffset;
+    // cells are spread edge to edge over the padded table (18 columns), rows are stacked with PERIOD_GAP
+    const pitch = (sizes.ELEMENT_SIZE * 18) / 17;
+    const cellLeft = sizes.ELEMENT_SIZE + cell.col * pitch;
+    if (!overlaps(cellLeft, cellLeft + sizes.ELEMENT_SIZE, cardLeft(sizes), cardLeft(sizes) + cardSize(sizes))) {
+      return stickyOffset;
+    }
+    const rowTop = cell.row * (sizes.ELEMENT_SIZE + sizes.PERIOD_GAP);
+    return stickyOffset.interpolate(stickyCardRanges(rowTop, rowTop + sizes.ELEMENT_SIZE, cardSize(sizes)));
+  }, [focused, stickyOffset, sizes]);
+
   return (
     <>
       <Header focused={focused} setFocused={setFocused} />
       <GradientBackground>
-        <ScrollView>
+        <Animated.ScrollView
+          scrollEventThrottle={16}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}>
           <View
             style={{
               ...styles.container,
@@ -69,11 +106,16 @@ const Index = () => {
                 settings={settings}
                 dictionary={dictionary}
                 highlightedElement={isElementFocused ? getElementBySymbol(focused) : undefined}
+                stickyOffset={stickyOffset}
               />
             ) : (
               <View style={styles.table}>
                 {isElementFocused && (
-                  <HighLightedElement dictionary={dictionary} element={getElementBySymbol(focused)} />
+                  <Animated.View
+                    style={{ ...styles.highlight, transform: [{ translateY: cardOffset }] }}
+                    pointerEvents="none">
+                    <HighLightedElement dictionary={dictionary} element={getElementBySymbol(focused)} />
+                  </Animated.View>
                 )}
                 <Image
                   source={images.LOGO}
@@ -163,7 +205,7 @@ const Index = () => {
               </View>
             )}
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       </GradientBackground>
     </>
   );

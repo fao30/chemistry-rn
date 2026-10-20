@@ -25,6 +25,13 @@ const useStyles = () => {
         width: '100%',
         position: 'relative',
       },
+      // full-size layer over the table that the element card is positioned in;
+      // drawn above the cells it slides over once the page is scrolled
+      highlight: {
+        ...StyleSheet.absoluteFillObject,
+        zIndex: 10,
+        elevation: 10,
+      },
       contStyle: {
         marginTop: sizes.HEIGHT * 0.04,
         paddingBottom: sizes.WIDTH * 0.04,

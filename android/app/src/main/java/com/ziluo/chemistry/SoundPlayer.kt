@@ -26,17 +26,17 @@ class SoundPlayer(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun playSound(n: String) {
-        player = MediaPlayer.create(reactApplicationContext, getRawResourceId("sound_$n"))
+        // release the previous player, otherwise every play leaks one and they overlap
+        stopSound()
+        player = MediaPlayer.create(reactApplicationContext, getRawResourceId("sound_$n")) ?: return
         player!!.setVolume(90f, 90f)
         player!!.start()
     }
 
     @ReactMethod
     fun stopSound() {
-        if (player == null) return;
-        if (player!!.isPlaying) {
-            player!!.stop()
-        }
+        player?.release()
+        player = null
     }
 
 }
