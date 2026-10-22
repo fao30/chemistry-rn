@@ -28,7 +28,10 @@ class SoundPlayer(reactContext: ReactApplicationContext) :
     fun playSound(n: String) {
         // release the previous player, otherwise every play leaks one and they overlap
         stopSound()
-        player = MediaPlayer.create(reactApplicationContext, getRawResourceId("sound_$n")) ?: return
+        // a missing file has no resource id, and MediaPlayer.create would throw on it
+        val id = getRawResourceId("sound_$n")
+        if (id == 0) return
+        player = MediaPlayer.create(reactApplicationContext, id) ?: return
         player!!.setVolume(90f, 90f)
         player!!.start()
     }

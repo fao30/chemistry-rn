@@ -6,6 +6,9 @@ import useStyles from './style';
 import { ELEMENT_REACTIONS, ELEMENT_REACTIONS_DATA, REACTIONS, REACTIONS_DATA } from '../../lib/constants';
 import useLocales from '../../lib/locales/useLocales';
 import icons from '../../assets/icons';
+import AudioHandler from '../../utils/AudioHandler';
+import { useSelector } from 'react-redux';
+import { selectSettings } from '../../store/reducer/settings';
 
 const getColor = (t: keyof typeof REACTIONS_DATA | undefined) => {
   return t ? REACTIONS_DATA[t].color : undefined;
@@ -15,6 +18,10 @@ const Index = () => {
   const [focused, setFocused] = useState('none');
   const { styles, colors, sizes } = useStyles();
   const dictionary = useLocales();
+  const settings = useSelector(selectSettings);
+
+  // narration for this chart is res/raw/sound_201.mp3, as the solubility chart's is sound_202
+  AudioHandler(201, settings);
 
   // const verticalScrollRef = useRef();
 
