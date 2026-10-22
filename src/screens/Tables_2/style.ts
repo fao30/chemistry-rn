@@ -23,14 +23,20 @@ const useStyles = () => {
           height: sizes.FONTSIZE_6x * 1.5,
           alignItems: 'center',
           flexDirection: 'row',
-          justifyContent: 'flex-end',
+          justifyContent: 'center',
+        },
+        titleButton: {
+          paddingHorizontal: sizes.MAIN_PADDING,
+          borderRadius: sizes.BORDER_RADIUS,
+        },
+        // same highlight as the focused header items
+        titleButtonFocused: {
+          backgroundColor: 'rgba(255,255,255,0.2)',
         },
         title: {
           ...globalStyles.TEXT_STYLE_BOLD,
           fontSize: sizes.FONTSIZE_6x,
           color: colors.WHITE,
-          position: 'absolute',
-          width: '100%',
           textAlign: 'center',
         },
         table: {

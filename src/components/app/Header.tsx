@@ -6,7 +6,6 @@ import { NavigationAction, NavigationProp, NavigationState, useNavigation, useRo
 import screens from '../../constants/screens';
 import icons from '../../assets/icons';
 import useLocales from '../../lib/locales/useLocales';
-import { StopPlayingAudio } from '../../utils/AudioHandler';
 import images from '../../assets/images';
 
 const Header = ({ focused, setFocused }: { focused: string; setFocused: any }) => {
@@ -16,11 +15,9 @@ const Header = ({ focused, setFocused }: { focused: string; setFocused: any }) =
   const navigation = useNavigation();
   const dictionary = useLocales();
 
+  // no need to stop sounds here: a screen stops its own sound when it loses focus
+  // (AudioHandler), and pressing the current page's tab should not cut it off
   const navigate = (screen: string) => {
-    if (screen != screens.ELEMENT) {
-      StopPlayingAudio();
-    }
-
     if (route.name !== screen) {
       if (route.name === screens.ELEMENT) {
         navigation?.goBack();

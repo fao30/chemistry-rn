@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Settings } from '../store/reducer/settings';
 import SoundPlayer from './SoundPlayer';
@@ -14,7 +15,16 @@ const AudioHandler = (n: number, settings: Settings) => {
     useCallback(() => {
       StartPlayingAudio(n, settings);
 
+      // leaving the app (the remote's Home button) does not blur the screen,
+      // so stop the narration from playing on over the TV's home screen
+      const appState = AppState.addEventListener('change', state => {
+        if (state !== 'active' && playing === n) {
+          StopPlayingAudio();
+        }
+      });
+
       return () => {
+        appState.remove();
         // The screen being left blurs after the next one has focused, so only
         // stop our own sound, not the one the next screen just started.
         if (playing === n) {

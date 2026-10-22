@@ -30,7 +30,7 @@ const Index = () => {
     column: -1,
   });
 
-const settings = useSelector(selectSettings);
+  const settings = useSelector(selectSettings);
 
   const horizontalScroll1 = useRef();
   const horizontalScroll2 = useRef();
@@ -43,14 +43,17 @@ const settings = useSelector(selectSettings);
       <GradientBackground>
         <View style={styles.container}>
           <View style={styles.titleView}>
-            <Text
-              style={styles.title}
+            {/* focusable so the remote can replay the narration, like the name card on the element page */}
+            <TouchableWithoutFeedback
+              onFocus={() => setFocused('title')}
               onPress={() => {
-              StopPlayingAudio();
-              StartPlayingAudio(202, settings);
-            }}>
-              {dictionary.titles.solubilityChart}
-              </Text>
+                StopPlayingAudio();
+                StartPlayingAudio(202, settings);
+              }}>
+              <View style={[styles.titleButton, focused === 'title' ? styles.titleButtonFocused : null]}>
+                <Text style={styles.title}>{dictionary.titles.solubilityChart}</Text>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
           <TouchableWithoutFeedback onFocus={() => setFocused('main-table')}>
             <View
